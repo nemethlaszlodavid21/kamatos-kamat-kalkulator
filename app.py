@@ -247,105 +247,6 @@ st.markdown(
                 font-size: 0.76rem;
             }
         }
-    
-        /* Mobil sidebar - telefonosabb vezérlők */
-        @media (max-width: 768px) {
-            section[data-testid="stSidebar"] {
-                width: 88vw !important;
-                max-width: 380px !important;
-            }
-
-            section[data-testid="stSidebar"] > div {
-                padding-top: 0.75rem !important;
-                padding-left: 0.9rem !important;
-                padding-right: 0.9rem !important;
-            }
-
-            section[data-testid="stSidebar"] h2 {
-                font-size: 1.25rem !important;
-                margin-bottom: 0.8rem !important;
-            }
-
-            /* Minden vezérlő kapjon kényelmesebb térközt */
-            section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
-                margin-bottom: 0.35rem;
-            }
-
-            /* Szöveges címkék */
-            section[data-testid="stSidebar"] label,
-            section[data-testid="stSidebar"] p {
-                font-size: 0.98rem !important;
-                line-height: 1.35 !important;
-            }
-
-            /* Számmezők */
-            section[data-testid="stSidebar"] div[data-testid="stNumberInput"] input {
-                min-height: 50px !important;
-                font-size: 17px !important;
-                padding-left: 14px !important;
-                padding-right: 14px !important;
-                border-radius: 14px !important;
-            }
-
-            /* Selectbox */
-            section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-                min-height: 50px !important;
-                border-radius: 14px !important;
-                font-size: 16px !important;
-            }
-
-            /* Toggle / checkbox nagyobb érintési felület */
-            section[data-testid="stSidebar"] div[data-testid="stCheckbox"],
-            section[data-testid="stSidebar"] div[data-testid="stToggle"] {
-                padding-top: 4px !important;
-                padding-bottom: 4px !important;
-            }
-
-            section[data-testid="stSidebar"] div[data-testid="stCheckbox"] label,
-            section[data-testid="stSidebar"] div[data-testid="stToggle"] label {
-                min-height: 44px !important;
-                display: flex !important;
-                align-items: center !important;
-            }
-
-            /* Slider - nagyobb fogópont és több hely */
-            section[data-testid="stSidebar"] div[data-testid="stSlider"] {
-                padding-top: 0.35rem !important;
-                padding-bottom: 0.75rem !important;
-            }
-
-            section[data-testid="stSidebar"] div[data-baseweb="slider"] {
-                min-height: 38px !important;
-            }
-
-            /* Sidebar gombok */
-            section[data-testid="stSidebar"] .stButton > button,
-            section[data-testid="stSidebar"] .stDownloadButton > button {
-                width: 100% !important;
-                min-height: 50px !important;
-                border-radius: 14px !important;
-                font-size: 1rem !important;
-                font-weight: 600 !important;
-            }
-
-            /* Vizuálisan különállóbb input blokkok */
-            section[data-testid="stSidebar"] div[data-testid="stNumberInput"],
-            section[data-testid="stSidebar"] div[data-testid="stSelectbox"],
-            section[data-testid="stSidebar"] div[data-testid="stSlider"] {
-                margin-bottom: 0.55rem !important;
-            }
-
-            /* Sidebar alsó részének extra hely */
-            section[data-testid="stSidebar"] div[data-testid="stSidebarContent"] {
-                padding-bottom: 1.5rem !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            section[data-testid="stSidebar"] {
-                width: 92vw !important;
-                max-width: 360px !important;
-            }
 
             section[data-testid="stSidebar"] > div {
                 padding-left: 0.75rem !important;
@@ -359,6 +260,77 @@ st.markdown(
             section[data-testid="stSidebar"] label,
             section[data-testid="stSidebar"] p {
                 font-size: 0.95rem !important;
+            }
+        }
+
+
+        /* Mobil sidebar - csak a belső vezérlők módosulnak */
+        @media (max-width: 768px) {
+            section[data-testid="stSidebar"] h2 {
+                font-size: 1.2rem !important;
+                margin-bottom: 0.8rem !important;
+            }
+
+            section[data-testid="stSidebar"] label,
+            section[data-testid="stSidebar"] p {
+                font-size: 0.96rem !important;
+                line-height: 1.35 !important;
+            }
+
+            section[data-testid="stSidebar"] div[data-testid="stNumberInput"] input {
+                min-height: 50px !important;
+                font-size: 17px !important;
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+                border-radius: 14px !important;
+            }
+
+            section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+                min-height: 50px !important;
+                border-radius: 14px !important;
+                font-size: 16px !important;
+            }
+
+            section[data-testid="stSidebar"] div[data-testid="stCheckbox"] label,
+            section[data-testid="stSidebar"] div[data-testid="stToggle"] label {
+                min-height: 44px !important;
+                display: flex !important;
+                align-items: center !important;
+            }
+
+            section[data-testid="stSidebar"] div[data-testid="stSlider"] {
+                padding-top: 0.3rem !important;
+                padding-bottom: 0.6rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+
+            section[data-testid="stSidebar"] div[data-baseweb="slider"] {
+                min-height: 36px !important;
+            }
+
+            section[data-testid="stSidebar"] .stButton > button,
+            section[data-testid="stSidebar"] .stDownloadButton > button {
+                width: 100% !important;
+                min-height: 50px !important;
+                border-radius: 14px !important;
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+            }
+
+            section[data-testid="stSidebar"] div[data-testid="stNumberInput"],
+            section[data-testid="stSidebar"] div[data-testid="stSelectbox"] {
+                margin-bottom: 0.5rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            section[data-testid="stSidebar"] h2 {
+                font-size: 1.15rem !important;
+            }
+
+            section[data-testid="stSidebar"] label,
+            section[data-testid="stSidebar"] p {
+                font-size: 0.94rem !important;
             }
         }
 
