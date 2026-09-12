@@ -131,109 +131,95 @@ st.markdown(
             border-radius: 12px;
         }
 
-        /* Mobil optimalizálás */
+        /* Mobil optimalizálás - biztonságos verzió */
         @media (max-width: 768px) {
             .block-container {
                 padding-top: 1rem !important;
-                padding-left: 0.85rem !important;
-                padding-right: 0.85rem !important;
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
                 padding-bottom: 2rem !important;
+                max-width: 100% !important;
             }
 
             .hero {
-                padding: 20px 18px;
+                padding: 18px 16px;
                 border-radius: 16px;
-                margin-bottom: 16px;
+                margin-bottom: 14px;
             }
 
             .hero h1 {
-                font-size: 1.65rem;
-                line-height: 1.15;
+                font-size: 1.55rem;
+                line-height: 1.2;
+                margin-bottom: 8px;
             }
 
             .hero p {
-                font-size: 0.92rem;
+                font-size: 0.9rem;
                 line-height: 1.45;
             }
 
             .metric-card,
             .goal-card {
-                min-height: auto;
-                padding: 16px 17px;
-                border-radius: 15px;
+                padding: 14px 15px;
+                border-radius: 14px;
             }
 
             .metric-value {
-                font-size: 1.42rem;
+                font-size: 1.3rem;
+                word-break: break-word;
             }
 
             .goal-value {
-                font-size: 1.28rem;
+                font-size: 1.2rem;
+                word-break: break-word;
+            }
+
+            .metric-label,
+            .goal-title {
+                font-size: 0.82rem;
+            }
+
+            .metric-sub,
+            .goal-detail {
+                font-size: 0.76rem;
             }
 
             .section-title {
-                font-size: 1.12rem;
-                margin-top: 10px;
+                font-size: 1.08rem;
             }
 
-            /* A Streamlit oszlopok mobilon kerüljenek egymás alá */
-            div[data-testid="stHorizontalBlock"] {
-                flex-direction: column !important;
-                gap: 0.75rem !important;
-            }
-
-            div[data-testid="column"] {
-                width: 100% !important;
-                flex: 1 1 100% !important;
-                min-width: 100% !important;
-            }
-
-            /* Letöltés gombok teljes szélességben */
             .stDownloadButton > button,
             .stButton > button {
-                width: 100%;
                 min-height: 44px;
             }
 
-            /* Inputok kényelmesebb érintéshez */
-            div[data-testid="stNumberInput"] input {
-                min-height: 42px;
-                font-size: 16px;
-            }
-
-            div[data-baseweb="select"] > div {
-                min-height: 42px;
-            }
-
-            /* Plotly grafikon ne lógjon ki */
             div[data-testid="stPlotlyChart"] {
                 width: 100% !important;
-                overflow-x: hidden !important;
             }
 
-            /* Táblák mobilon vízszintesen görgethetők legyenek */
             div[data-testid="stDataFrame"] {
                 width: 100% !important;
-                overflow-x: auto !important;
-            }
-
-            /* Oldalsáv mobilon valamivel keskenyebb és könnyebben kezelhető */
-            section[data-testid="stSidebar"] {
-                min-width: min(88vw, 360px) !important;
-                max-width: min(88vw, 360px) !important;
-            }
-
-            /* Streamlit alap felső margóinak finomhangolása mobilon */
-            header[data-testid="stHeader"] {
-                background: transparent;
             }
         }
 
         @media (max-width: 480px) {
             .block-container {
-                padding-left: 0.65rem !important;
-                padding-right: 0.65rem !important;
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
             }
+
+            .hero {
+                padding: 16px 14px;
+            }
+
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+
+            .hero p {
+                font-size: 0.86rem;
+            }
+        }
 
             .hero {
                 padding: 18px 15px;
