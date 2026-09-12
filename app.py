@@ -736,7 +736,7 @@ fig.add_trace(
     go.Scatter(
         x=result.data["Év"],
         y=result.data["Portfólió értéke"],
-        mode="lines+markers",
+        mode="lines",
         name="Portfólió értéke",
         line=dict(width=4),
         hovertemplate="%{x:.0f}. év<br><b>%{y:,.0f} Ft</b><extra></extra>",
@@ -774,20 +774,53 @@ if target_enabled:
     )
 
 fig.update_layout(
-    height=500,
-    margin=dict(l=10, r=10, t=25, b=10),
+    height=430,
+    autosize=True,
+    margin=dict(l=4, r=4, t=12, b=4),
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(255,255,255,0.85)",
     hovermode="x unified",
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
-    xaxis_title="Év",
-    yaxis_title="Érték (Ft)",
-    yaxis_tickformat=",.0f",
+    legend=dict(
+        orientation="v",
+        yanchor="top",
+        y=0.99,
+        xanchor="left",
+        x=0.01,
+        bgcolor="rgba(255,255,255,0.75)",
+        font=dict(size=11),
+    ),
+    xaxis=dict(
+        title=None,
+        automargin=True,
+        fixedrange=True,
+    ),
+    yaxis=dict(
+        title=None,
+        tickformat=".2s",
+        automargin=True,
+        fixedrange=True,
+    ),
 )
-fig.update_xaxes(showgrid=True, gridcolor="rgba(152,162,179,0.15)")
-fig.update_yaxes(showgrid=True, gridcolor="rgba(152,162,179,0.15)")
+fig.update_xaxes(
+    showgrid=True,
+    gridcolor="rgba(152,162,179,0.15)",
+    nticks=8,
+)
+fig.update_yaxes(
+    showgrid=True,
+    gridcolor="rgba(152,162,179,0.15)",
+    nticks=6,
+)
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(
+    fig,
+    use_container_width=True,
+    config={
+        "responsive": True,
+        "displayModeBar": False,
+        "scrollZoom": False,
+    },
+)
 
 left, right = st.columns([1.05, 1])
 
