@@ -1,5 +1,6 @@
 import math
 from dataclasses import dataclass
+from io import BytesIO
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -8,7 +9,6 @@ import streamlit as st
 
 st.set_page_config(
     page_title="Kamatos kamat kalkulátor",
-    page_icon="💰",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -85,24 +85,42 @@ st.markdown(
             color: #101828;
             font-size: 1.28rem;
             font-weight: 800;
-            margin-top: 8px;
-            margin-bottom: 6px;
+            margin-top: 12px;
+            margin-bottom: 8px;
         }
 
-        .soft-card {
-            background: rgba(255,255,255,0.85);
+        .goal-card {
+            background: white;
             border: 1px solid #e6ebf2;
             border-radius: 18px;
-            padding: 16px 18px;
-            box-shadow: 0 7px 20px rgba(16, 24, 40, 0.04);
+            padding: 20px 22px;
+            box-shadow: 0 7px 24px rgba(16, 24, 40, 0.06);
+            margin-bottom: 8px;
         }
 
-        .small-muted {
+        .goal-title {
             color: #667085;
-            font-size: 0.85rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
 
-        .stButton > button {
+        .goal-value {
+            color: #101828;
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .goal-detail {
+            color: #667085;
+            font-size: 0.88rem;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .stButton > button,
+        .stDownloadButton > button {
             border-radius: 12px;
             font-weight: 700;
         }
@@ -121,13 +139,28 @@ st.markdown(
 # -----------------------------
 # Segédfüggvények
 # -----------------------------
-
 def format_huf(value: float) -> str:
     return f"{value:,.0f} Ft".replace(",", " ")
 
 
 def format_pct(value: float) -> str:
     return f"{value:.1f}%"
+
+
+def format_duration(days: int) -> str:
+    years = days // 365
+    remaining_days = days % 365
+    months = int(remaining_days / (365 / 12))
+    remaining = int(round(remaining_days - months * (365 / 12)))
+
+    parts = []
+    if years:
+        parts.append(f"{years} év")
+    if months:
+        parts.append(f"{months} hónap")
+    if remaining and years == 0:
+        parts.append(f"{remaining} nap")
+    return " ".join(parts) if parts else "azonnal"
 
 
 PAYMENT_FREQUENCIES = {
@@ -157,6 +190,15 @@ class SimulationResult:
     total_payment_events: int
 
 
+@dataclass
+class GoalResult:
+    reached: bool
+    days_to_goal: int | None
+    balance_at_goal: float | None
+    contributions_at_goal: float | None
+    interest_at_goal: float | None
+
+
 def simulate(
     initial_capital: float,
     recurring_payment: float,
@@ -167,15 +209,6 @@ def simulate(
     credit_frequency: int,
     inflation_rate: float,
 ) -> SimulationResult:
-    """
-    Napi léptékű cashflow-szimuláció.
-
-    Miért napi?
-    - így a heti/havi/negyedéves befizetések egymással kombinálhatók;
-    - a kamatot a megadott jóváírási periódusokban írjuk jóvá;
-    - az egyes periódusokon belül felhalmozott kamat nem kamatozik tovább a következő
-      jóváírásig, ezért a jóváírás gyakorisága ténylegesen számít.
-    """
     days_per_year = 365
     total_days = int(years * days_per_year)
 
@@ -184,7 +217,6 @@ def simulate(
     accrued_interest = 0.0
     total_payment_events = 0
 
-    # Eseménynapok közelítő, egyenletes elosztással.
     payment_interval = days_per_year / payment_frequency
     credit_interval = days_per_year / credit_frequency
 
@@ -199,28 +231,27 @@ def simulate(
         current_year_index = min((day - 1) // days_per_year, years - 1)
         payment_this_year = recurring_payment * ((1 + annual_payment_increase) ** current_year_index)
 
-        # A már jóváírt egyenleg termeli a kamatot; az időközben felgyűlt kamat
-        # csak a következő kamatjóváírás után válik kamatozó tőkévé.
         accrued_interest += balance * daily_rate
 
-        # Rendszeres befizetések
         while day + 1e-9 >= next_payment_day and next_payment_day <= total_days + 1e-9:
             balance += payment_this_year
             total_contributions += payment_this_year
             total_payment_events += 1
             next_payment_day += payment_interval
 
-        # Kamatjóváírás
         while day + 1e-9 >= next_credit_day and next_credit_day <= total_days + 1e-9:
             balance += accrued_interest
             accrued_interest = 0.0
             next_credit_day += credit_interval
 
-        # Év végi snapshot, plusz utolsó nap
         if day % days_per_year == 0 or day == total_days:
             displayed_balance = balance + accrued_interest
             elapsed_years = day / days_per_year
-            real_value = displayed_balance / ((1 + inflation_rate) ** elapsed_years) if inflation_rate > -1 else displayed_balance
+            real_value = (
+                displayed_balance / ((1 + inflation_rate) ** elapsed_years)
+                if inflation_rate > -1
+                else displayed_balance
+            )
             snapshots.append(
                 {
                     "Év": round(elapsed_years, 2),
@@ -233,7 +264,11 @@ def simulate(
 
     final_balance = balance + accrued_interest
     total_interest = final_balance - total_contributions
-    real_final_balance = final_balance / ((1 + inflation_rate) ** years) if inflation_rate > -1 else final_balance
+    real_final_balance = (
+        final_balance / ((1 + inflation_rate) ** years)
+        if inflation_rate > -1
+        else final_balance
+    )
 
     return SimulationResult(
         data=pd.DataFrame(snapshots),
@@ -243,6 +278,97 @@ def simulate(
         real_final_balance=real_final_balance,
         total_payment_events=total_payment_events,
     )
+
+
+def calculate_goal(
+    target_amount: float,
+    initial_capital: float,
+    recurring_payment: float,
+    payment_frequency: int,
+    annual_payment_increase: float,
+    annual_rate: float,
+    credit_frequency: int,
+    max_years: int = 100,
+) -> GoalResult:
+    if initial_capital >= target_amount:
+        return GoalResult(
+            reached=True,
+            days_to_goal=0,
+            balance_at_goal=initial_capital,
+            contributions_at_goal=initial_capital,
+            interest_at_goal=0.0,
+        )
+
+    days_per_year = 365
+    total_days = max_years * days_per_year
+
+    balance = float(initial_capital)
+    total_contributions = float(initial_capital)
+    accrued_interest = 0.0
+
+    payment_interval = days_per_year / payment_frequency
+    credit_interval = days_per_year / credit_frequency
+    next_payment_day = payment_interval
+    next_credit_day = credit_interval
+
+    daily_rate = (1 + annual_rate) ** (1 / days_per_year) - 1 if annual_rate > -1 else 0
+
+    for day in range(1, total_days + 1):
+        current_year_index = (day - 1) // days_per_year
+        payment_this_year = recurring_payment * ((1 + annual_payment_increase) ** current_year_index)
+
+        accrued_interest += balance * daily_rate
+
+        while day + 1e-9 >= next_payment_day and next_payment_day <= total_days + 1e-9:
+            balance += payment_this_year
+            total_contributions += payment_this_year
+            next_payment_day += payment_interval
+
+        while day + 1e-9 >= next_credit_day and next_credit_day <= total_days + 1e-9:
+            balance += accrued_interest
+            accrued_interest = 0.0
+            next_credit_day += credit_interval
+
+        displayed_balance = balance + accrued_interest
+        if displayed_balance >= target_amount:
+            return GoalResult(
+                reached=True,
+                days_to_goal=day,
+                balance_at_goal=displayed_balance,
+                contributions_at_goal=total_contributions,
+                interest_at_goal=displayed_balance - total_contributions,
+            )
+
+    return GoalResult(
+        reached=False,
+        days_to_goal=None,
+        balance_at_goal=None,
+        contributions_at_goal=None,
+        interest_at_goal=None,
+    )
+
+
+def dataframe_to_excel(df: pd.DataFrame) -> bytes:
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Éves kalkuláció")
+        worksheet = writer.book["Éves kalkuláció"]
+
+        widths = {
+            "A": 12,
+            "B": 22,
+            "C": 22,
+            "D": 22,
+            "E": 22,
+        }
+        for column, width in widths.items():
+            worksheet.column_dimensions[column].width = width
+
+        for row in worksheet.iter_rows(min_row=2, min_col=2, max_col=5):
+            for cell in row:
+                cell.number_format = '#,##0 "Ft"'
+
+    return output.getvalue()
 
 
 # -----------------------------
@@ -331,6 +457,18 @@ with st.sidebar:
     if not inflation_enabled:
         inflation_rate_pct = 0.0
 
+    st.divider()
+
+    target_enabled = st.toggle("Célösszeg számítása", value=True)
+    target_amount = st.number_input(
+        "Célösszeg (Ft)",
+        min_value=100_000,
+        max_value=10_000_000_000,
+        value=100_000_000,
+        step=1_000_000,
+        disabled=not target_enabled,
+    )
+
 
 # -----------------------------
 # Számítás
@@ -345,6 +483,18 @@ result = simulate(
     credit_frequency=CREDIT_FREQUENCIES[credit_frequency_label],
     inflation_rate=inflation_rate_pct / 100,
 )
+
+goal_result = None
+if target_enabled:
+    goal_result = calculate_goal(
+        target_amount=target_amount,
+        initial_capital=initial_capital,
+        recurring_payment=recurring_payment,
+        payment_frequency=PAYMENT_FREQUENCIES[payment_frequency_label],
+        annual_payment_increase=annual_payment_increase_pct / 100,
+        annual_rate=annual_rate_pct / 100,
+        credit_frequency=CREDIT_FREQUENCIES[credit_frequency_label],
+    )
 
 
 # -----------------------------
@@ -411,6 +561,56 @@ with col4:
         unsafe_allow_html=True,
     )
 
+
+if target_enabled and goal_result is not None:
+    st.markdown("<div class='section-title'>Célösszeg</div>", unsafe_allow_html=True)
+
+    if goal_result.reached:
+        duration_text = format_duration(goal_result.days_to_goal or 0)
+        within_term = (goal_result.days_to_goal or 0) <= years * 365
+        status_text = "A beállított futamidőn belül elérhető." if within_term else "A beállított futamidőn túl érhető el."
+
+        goal_col1, goal_col2, goal_col3 = st.columns(3)
+        with goal_col1:
+            st.markdown(
+                f"""
+                <div class="goal-card">
+                    <div class="goal-title">Célösszeg</div>
+                    <div class="goal-value">{format_huf(target_amount)}</div>
+                    <div class="goal-detail">{status_text}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with goal_col2:
+            st.markdown(
+                f"""
+                <div class="goal-card">
+                    <div class="goal-title">Becsült elérési idő</div>
+                    <div class="goal-value">{duration_text}</div>
+                    <div class="goal-detail">A jelenlegi befizetési és hozamfeltételekkel.</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with goal_col3:
+            st.markdown(
+                f"""
+                <div class="goal-card">
+                    <div class="goal-title">Hozam a cél elérésekor</div>
+                    <div class="goal-value">{format_huf(goal_result.interest_at_goal or 0)}</div>
+                    <div class="goal-detail">Saját befizetés: {format_huf(goal_result.contributions_at_goal or 0)}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    else:
+        st.warning(
+            "A megadott feltételekkel a célösszeg 100 éven belül sem érhető el. "
+            "Növeld a rendszeres befizetést, a futamidőt vagy módosítsd a hozamfeltételezést."
+        )
+
+
 st.markdown("<div class='section-title'>A vagyon növekedése</div>", unsafe_allow_html=True)
 st.caption("A grafikon megmutatja, mekkora rész származik a saját befizetéseidből, és mennyit termel a hozam.")
 
@@ -446,6 +646,14 @@ if inflation_enabled:
             line=dict(width=2, dash="dot"),
             hovertemplate="%{x:.0f}. év<br>%{y:,.0f} Ft<extra></extra>",
         )
+    )
+
+if target_enabled:
+    fig.add_hline(
+        y=target_amount,
+        line_dash="dash",
+        annotation_text="Célösszeg",
+        annotation_position="top left",
     )
 
 fig.update_layout(
@@ -512,22 +720,52 @@ with right:
     if multiplier > 0:
         st.write(f"A végső egyenleg a saját befizetésed **{multiplier:.2f}×-ese**.")
     if inflation_enabled:
-        purchasing_power_loss = result.final_balance - result.real_final_balance
         st.write(
             f"{format_pct(inflation_rate_pct)} átlagos infláció mellett a nominális végösszeg "
             f"mai vásárlóereje körülbelül **{format_huf(result.real_final_balance)}**."
         )
 
+
 st.markdown("<div class='section-title'>Éves bontás</div>", unsafe_allow_html=True)
 
-annual_table = result.data.copy()
+annual_table_display = result.data.copy()
 for col in ["Portfólió értéke", "Saját befizetés", "Hozam", "Reálérték"]:
-    annual_table[col] = annual_table[col].map(format_huf)
-annual_table["Év"] = annual_table["Év"].map(lambda x: f"{x:.0f}")
+    annual_table_display[col] = annual_table_display[col].map(format_huf)
+annual_table_display["Év"] = annual_table_display["Év"].map(lambda x: f"{x:.0f}")
 
-st.dataframe(annual_table, use_container_width=True, hide_index=True, height=360)
+st.dataframe(annual_table_display, use_container_width=True, hide_index=True, height=360)
+
+
+st.markdown("<div class='section-title'>Eredmények exportálása</div>", unsafe_allow_html=True)
+st.caption("A letöltött fájlok az éves bontás számszerű adatait tartalmazzák.")
+
+export_df = result.data.copy()
+export_df["Év"] = export_df["Év"].round(0).astype(int)
+
+csv_data = export_df.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig")
+excel_data = dataframe_to_excel(export_df)
+
+export_col1, export_col2 = st.columns(2)
+with export_col1:
+    st.download_button(
+        label="CSV letöltése",
+        data=csv_data,
+        file_name="kamatos_kamat_eves_kalkulacio.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
+
+with export_col2:
+    st.download_button(
+        label="Excel letöltése",
+        data=excel_data,
+        file_name="kamatos_kamat_eves_kalkulacio.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True,
+    )
+
 
 st.caption(
     "A kalkulátor becslést készít. A tényleges befektetési hozamok nem garantáltak, és időben változhatnak. "
-    "A heti/havi/negyedéves eseményeket a modell egyenletesen osztja el az éven belül."
+    "A heti, havi és negyedéves eseményeket a modell egyenletesen osztja el az éven belül."
 )
