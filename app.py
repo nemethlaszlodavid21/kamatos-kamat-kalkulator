@@ -223,7 +223,7 @@ def simulate(
     next_payment_day = payment_interval
     next_credit_day = credit_interval
 
-    daily_rate = (1 + annual_rate) ** (1 / days_per_year) - 1 if annual_rate > -1 else 0
+    daily_rate = annual_rate / days_per_year if annual_rate > -1 else 0
 
     snapshots = []
 
@@ -311,7 +311,7 @@ def calculate_goal(
     next_payment_day = payment_interval
     next_credit_day = credit_interval
 
-    daily_rate = (1 + annual_rate) ** (1 / days_per_year) - 1 if annual_rate > -1 else 0
+    daily_rate = annual_rate / days_per_year if annual_rate > -1 else 0
 
     for day in range(1, total_days + 1):
         current_year_index = (day - 1) // days_per_year
