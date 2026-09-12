@@ -130,6 +130,137 @@ st.markdown(
         div[data-testid="stSlider"] {
             border-radius: 12px;
         }
+
+        /* Mobil optimalizálás */
+        @media (max-width: 768px) {
+            .block-container {
+                padding-top: 1rem !important;
+                padding-left: 0.85rem !important;
+                padding-right: 0.85rem !important;
+                padding-bottom: 2rem !important;
+            }
+
+            .hero {
+                padding: 20px 18px;
+                border-radius: 16px;
+                margin-bottom: 16px;
+            }
+
+            .hero h1 {
+                font-size: 1.65rem;
+                line-height: 1.15;
+            }
+
+            .hero p {
+                font-size: 0.92rem;
+                line-height: 1.45;
+            }
+
+            .metric-card,
+            .goal-card {
+                min-height: auto;
+                padding: 16px 17px;
+                border-radius: 15px;
+            }
+
+            .metric-value {
+                font-size: 1.42rem;
+            }
+
+            .goal-value {
+                font-size: 1.28rem;
+            }
+
+            .section-title {
+                font-size: 1.12rem;
+                margin-top: 10px;
+            }
+
+            /* A Streamlit oszlopok mobilon kerüljenek egymás alá */
+            div[data-testid="stHorizontalBlock"] {
+                flex-direction: column !important;
+                gap: 0.75rem !important;
+            }
+
+            div[data-testid="column"] {
+                width: 100% !important;
+                flex: 1 1 100% !important;
+                min-width: 100% !important;
+            }
+
+            /* Letöltés gombok teljes szélességben */
+            .stDownloadButton > button,
+            .stButton > button {
+                width: 100%;
+                min-height: 44px;
+            }
+
+            /* Inputok kényelmesebb érintéshez */
+            div[data-testid="stNumberInput"] input {
+                min-height: 42px;
+                font-size: 16px;
+            }
+
+            div[data-baseweb="select"] > div {
+                min-height: 42px;
+            }
+
+            /* Plotly grafikon ne lógjon ki */
+            div[data-testid="stPlotlyChart"] {
+                width: 100% !important;
+                overflow-x: hidden !important;
+            }
+
+            /* Táblák mobilon vízszintesen görgethetők legyenek */
+            div[data-testid="stDataFrame"] {
+                width: 100% !important;
+                overflow-x: auto !important;
+            }
+
+            /* Oldalsáv mobilon valamivel keskenyebb és könnyebben kezelhető */
+            section[data-testid="stSidebar"] {
+                min-width: min(88vw, 360px) !important;
+                max-width: min(88vw, 360px) !important;
+            }
+
+            /* Streamlit alap felső margóinak finomhangolása mobilon */
+            header[data-testid="stHeader"] {
+                background: transparent;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .block-container {
+                padding-left: 0.65rem !important;
+                padding-right: 0.65rem !important;
+            }
+
+            .hero {
+                padding: 18px 15px;
+            }
+
+            .hero h1 {
+                font-size: 1.45rem;
+            }
+
+            .hero p {
+                font-size: 0.88rem;
+            }
+
+            .metric-value {
+                font-size: 1.28rem;
+            }
+
+            .metric-label,
+            .goal-title {
+                font-size: 0.82rem;
+            }
+
+            .metric-sub,
+            .goal-detail {
+                font-size: 0.76rem;
+            }
+        }
     </style>
     """,
     unsafe_allow_html=True,
